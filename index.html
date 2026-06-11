@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>YOU ARE ALIEN - Retro Edition</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #050510;
+            color: #00ffcc;
+            font-family: 'Courier New', Courier, monospace;
+            overflow: hidden;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        canvas {
+            display: block;
+            image-rendering: pixelated;
+            width: 100vw;
+            height: 100vh;
+        }
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(5, 5, 15, 0.9);
+            text-align: center;
+            box-sizing: border-box;
+            padding: 20px;
+        }
+        h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+            color: #ff0055;
+            text-shadow: 3px 3px 0px #00ffff;
+            letter-spacing: 2px;
+            animation: pulse 1.5s infinite alternate;
+        }
+        @keyframes pulse {
+            from { transform: scale(0.98); text-shadow: 2px 2px 0px #00ffff; }
+            to { transform: scale(1.02); text-shadow: 4px 4px 0px #ff0055; color: #00ffff; }
+        }
+        p {
+            font-size: 16px;
+            color: #ffffff;
+            margin: 8px 0;
+        }
+        .btn {
+            background-color: #00ffcc;
+            color: #050510;
+            border: 4px solid #ffffff;
+            padding: 12px 28px;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            font-size: 20px;
+            margin-top: 25px;
+            cursor: pointer;
+            box-shadow: 4px 4px 0px #ff0055;
+            text-transform: uppercase;
+        }
+        .btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px #ff0055;
+        }
+        #ui-layer {
+            position: absolute;
+            top: env(safe-area-inset-top, 10px);
+            left: env(safe-area-inset-left, 10px);
+            right: env(safe-area-inset-right, 10px);
+            pointer-events: none;
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            font-weight: bold;
+            text-shadow: 2px 2px 0 #000;
+            z-index: 5;
+        }
+        .ui-box {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 6px 12px;
+            border: 1px solid #00ffcc;
+            border-radius: 4px;
+        }
+        #countdown-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 80px;
+            font-weight: bold;
+            color: #00ffcc;
+            text-shadow: 4px 4px 0px #ff0055;
+            display: none;
+            pointer-events: none;
+            z-index: 4;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ui-layer">
+        <div class="ui-box" id="scoreDisplay">SCORE: 0</div>
+        <div class="ui-box" id="livesDisplay">VIDAS: 3</div>
+        <div class="ui-box" id="highScoreDisplay">RECORDE: 0</div>
+    </div>
+
+    <!-- Tela de Título Inicial -->
+    <div id="title-screen" class="overlay">
+        <h1>YOU ARE ALIEN</h1>
+        <p>ABDUZA OS HUMANOS NAS RUAS</p>
+        <p>DESVIE DAS BOMBAS</p>
+        <p>COLETE SINAIS VERDES PARA VIDA</p>
+        <button class="btn" onclick="initGameSequence()">INICIAR INVASÃO</button>
+    </div>
+
+    <!-- Contagem Regressiva Transparente -->
+    <div id="countdown-overlay">3</div>
+
+    <!-- Tela de Game Over -->
+    <div id="game-over-screen" class="overlay" style="display: none;">
+        <h1 style="color: #ff0055; text-shadow: 3px 3px 0 #fff;">FIM DE JOGO</h1>
+        <div style="background: rgba(255,255,255,0.1); padding: 15px; border: 2px dashed #ff0055; margin: 15px 0;">
+            <p style="font-size: 20px; color: #00ffcc;">SCORE ATUAL: <span id="finalScore">0</span></p>
+            <p style="font-size: 18px; color: #ffff00;">ÚLTIMO JOGO: <span id="lastScore">0</span></p>
+        </div>
+        <button class="btn" onclick="initGameSequence()">JOGAR DE NOVO</button>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Estado do Jogo: 'TITLE', 'COUNTDOWN', 'PLAYING', 'GAMEOVER'
+        let gameState = 'TITLE';
+        let width, height;
+        let streetY;
+
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            streetY = height - 50; // Posição das ruas
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Variáveis de Controle e Score
+        let score = 0;
+        let lives = 3;
+        let highScore = localStorage.getItem('alienHighScore') || 0;
+        let lastScore = localStorage.getItem('alienLastScore') || 0;
+        document.getElementById('highScoreDisplay').innerText = `RECORDE: ${highScore}`;
+
+        let frameCount = 0;
+        let countdownVal = 3;
+        let countdownTimer = null;
+
+        // Entidades
+        const ufo = { 
+            x: width / 2, 
+            y: height / 4, 
+            vx: 0, 
+            vy: 0, 
+            speed: 5, 
+            radius: 24,
+            invulnerableFrames: 0 
+        };
+        let people = [];
+        let bombs = [];
+        let signals = [];
+        let buildings = [];
+
+        // Gerar prédios estáticos de fundo (Pixel art procedural)
+        function generateBuildings() {
+            buildings = [];
+            let currentX = 0;
+            while (currentX < width + 100) {
+                let bWidth = Math.floor(Math.random() * 60) + 40;
+                let bHeight = Math.floor(Math.random() * (height * 0.4)) + (height * 0.2);
+                let colorType = Math.floor(Math.random() * 3);
+                let color = '#121224'; // Camada traseira padrão
+                if (colorType === 1) color = '#181830';
+                if (colorType === 2) color = '#1c1c3a';
+
+                // Janelas do prédio
+                let windows = [];
+                let rows = Math.floor(bHeight / 16);
+                let cols = Math.floor(bWidth / 14);
+                for (let r = 1; r < rows - 1; r++) {
+                    for (let c = 1; c < cols - 1; c++) {
+                        if (Math.random() < 0.4) { // 40% das janelas acesas
+                            windows.push({
+                                dx: c * 14,
+                                dy: bHeight - (r * 16),
+                                color: Math.random() > 0.3 ? '#ffcc44' : '#44ccff'
+                            });
+                        }
+                    }
+                }
+
+                buildings.push({
+                    x: currentX,
+                    w: bWidth,
+                    h: bHeight,
+                    color: color,
+                    windows: windows
+                });
+                currentX += bWidth - 5; // Pequena sobreposição para evitar frestas
+            }
+        }
+        generateBuildings();
+        window.addEventListener('resize', generateBuildings);
+
+        // Sistema de Áudio Nativo Suave (Web Audio API)
+        let audioCtx = null;
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSoftTone(freq, type, duration, volume = 0.1, targetFreq = null) {
+            if (!audioCtx) return;
+            try {
+                let osc = audioCtx.createOscillator();
+                let gainNode = audioCtx.createGain();
+                
+                osc.type = type; // 'sine' ou 'triangle' para som suave
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                if (targetFreq) {
+                    osc.frequency.exponentialRampToValueAtTime(targetFreq, audioCtx.currentTime + duration);
+                }
+                
+                gainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+                
+                osc.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch(e) { console.log("Erro de áudio:", e); }
+        }
+
+        // Sons específicos do jogo
+        function soundBeep(high = false) {
+            // Sons senoidais muito limpos e suaves
+            playSoftTone(high ? 587.33 : 440, 'sine', 0.12, 0.1); 
+        }
+
+        function soundStartSignal() {
+            playSoftTone(880, 'sine', 0.08, 0.1);
+            setTimeout(() => playSoftTone(1174.66, 'sine', 0.25, 0.08), 80);
+        }
+
+        function soundHit() {
+            // Onda triangular suave descendente simulando impacto macio
+            playSoftTone(180, 'triangle', 0.35, 0.2, 50);
+        }
+
+        function soundAbduction() {
+            if (frameCount % 12 === 0) {
+                playSoftTone(350 + Math.sin(frameCount * 0.3) * 40, 'sine', 0.08, 0.04);
+            }
+        }
+
+        function soundExtraLife() {
+            playSoftTone(523.25, 'sine', 0.08, 0.08);
+            setTimeout(() => playSoftTone(659.25, 'sine', 0.08, 0.08), 70);
+            setTimeout(() => playSoftTone(783.99, 'sine', 0.15, 0.08), 140);
+        }
+
+        function soundGameOver() {
+            // Transição melancólica suave decrescente
+            playSoftTone(293.66, 'sine', 0.25, 0.15);
+            setTimeout(() => playSoftTone(277.18, 'sine', 0.25, 0.15), 200);
+            setTimeout(() => playSoftTone(220.00, 'sine', 0.5, 0.12), 400);
+        }
+
+        // Controles Mobile (Touch)
+        let joyX = 0, joyY = 0;
+        let isAbducting = false;
+        let joyBaseX = 80, joyBaseY = height - 80;
+
+        window.addEventListener('touchstart', handleTouch, { passive: false });
+        window.addEventListener('touchmove', handleTouch, { passive: false });
+        window.addEventListener('touchend', handleTouchEnd, { passive: false });
+
+        // Teclado Fallback
+        const keys = {};
+        window.addEventListener('keydown', e => { 
+            keys[e.code] = true; 
+            if(e.code === 'Space' || e.code === 'KeyK') isAbducting = true; 
+        });
+        window.addEventListener('keyup', e => { 
+            keys[e.code] = false; 
+            if(e.code === 'Space' || e.code === 'KeyK') isAbducting = false; 
+        });
+
+        function handleTouch(e) {
+            if (gameState !== 'PLAYING') return;
+            e.preventDefault();
+            joyBaseY = height - 80; // Atualiza dinamicamente caso mude tela
+            let touches = e.touches;
+            let leftTouch = null;
+            let rightTouchActive = false;
+
+            for (let i = 0; i < touches.length; i++) {
+                let t = touches[i];
+                if (t.clientX < width / 2) {
+                    leftTouch = t;
+                } else {
+                    rightTouchActive = true;
+                }
+            }
+
+            if (leftTouch) {
+                let dx = leftTouch.clientX - joyBaseX;
+                let dy = leftTouch.clientY - joyBaseY;
+                let dist = Math.hypot(dx, dy);
+                let maxD = 40;
+                if (dist > maxD) {
+                    joyX = (dx / dist) * maxD;
+                    joyY = (dy / dist) * maxD;
+                } else {
+                    joyX = dx;
+                    joyY = dy;
+                }
+            }
+            isAbducting = rightTouchActive;
+        }
+
+        function handleTouchEnd(e) {
+            if (gameState !== 'PLAYING') return;
+            e.preventDefault();
+            let touches = e.touches;
+            let leftActive = false;
+            let rightActive = false;
+
+            for (let i = 0; i < touches.length; i++) {
+                if (touches[i].clientX < width / 2) leftActive = true;
+                else rightActive = true;
+            }
+
+            if (!leftActive) { joyX = 0; joyY = 0; }
+            if (!rightActive) { isAbducting = false; }
+        }
+
+        // Fluxo de Inicialização e Contagem Regressiva
+        function initGameSequence() {
+            initAudio();
+            document.getElementById('title-screen').style.display = 'none';
+            document.getElementById('game-over-screen').style.display = 'none';
+            
+            // Reset de variáveis principais
+            score = 0;
+            lives = 3;
+            people = [];
+            bombs = [];
+            signals = [];
+            ufo.x = width / 2;
+            ufo.y = height / 4;
+            ufo.invulnerableFrames = 0;
+            document.getElementById('scoreDisplay').innerText = `SCORE: ${score}`;
+            document.getElementById('livesDisplay').innerText = `VIDAS: ${lives}`;
+
+            // Iniciar Contagem Regressiva
+            gameState = 'COUNTDOWN';
+            countdownVal = 3;
+            let overlay = document.getElementById('countdown-overlay');
+            overlay.style.display = 'block';
+            overlay.innerText = countdownVal;
+            soundBeep(false);
+
+            if(countdownTimer) clearInterval(countdownTimer);
+            countdownTimer = setInterval(() => {
+                countdownVal--;
+                if (countdownVal > 0) {
+                    overlay.innerText = countdownVal;
+                    soundBeep(false);
+                } else if (countdownVal === 0) {
+                    overlay.innerText = "GO!";
+                    soundStartSignal();
+                } else {
+                    clearInterval(countdownTimer);
+                    overlay.style.display = 'none';
+                    gameState = 'PLAYING';
+                }
+            }, 800);
+        }
+
+        // Criar Entidades
+        function spawnPerson() {
+            people.push({
+                x: Math.random() > 0.5 ? -15 : width + 15,
+                y: streetY - 2,
+                vx: (Math.random() * 0.8 + 0.5) * (Math.random() > 0.5 ? 1 : -1),
+                state: 'walking', 
+                frameOffset: Math.floor(Math.random() * 12)
+            });
+        }
+
+        function spawnBomb() {
+            bombs.push({
+                x: Math.random() * width,
+                y: -20,
+                vy: Math.random() * 1.5 + 1.5,
+                radius: 9
+            });
+        }
+
+        function spawnSignal() {
+            signals.push({
+                x: Math.random() * (width - 40) + 20,
+                y: -20,
+                vy: 1.2,
+                radius: 10
+            });
+        }
+
+        // Funções de Renderização Pixel Art Nativas
+        function drawUFO(x, y) {
+            ctx.save();
+            // Efeito de oscilação de opacidade por dano
+            if (ufo.invulnerableFrames > 0) {
+                let wave = Math.sin(frameCount * 0.6) * 0.4 + 0.6; // Oscila opacidade suavemente entre 0.2 e 1.0
+                ctx.globalAlpha = wave;
+            }
+
+            // Cúpula Alien (Vidro)
+            ctx.fillStyle = 'rgba(0, 255, 230, 0.65)';
+            ctx.beginPath();
+            ctx.arc(x, y - 4, 12, Math.PI, 0);
+            ctx.fill();
+
+            // Corpo de metal da nave (Pixelated Ellipse)
+            ctx.fillStyle = '#8899a6';
+            ctx.beginPath();
+            ctx.ellipse(x, y + 2, 26, 8, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Janelas/Luzes inferiores piscantes
+            let t = Math.floor(frameCount / 10) % 3;
+            ctx.fillStyle = (t === 0) ? '#ff0055' : '#00ffcc';
+            ctx.fillRect(x - 16, y + 1, 4, 3);
+            ctx.fillStyle = (t === 1) ? '#ff0055' : '#ffff00';
+            ctx.fillRect(x - 2, y + 2, 4, 3);
+            ctx.fillStyle = (t === 2) ? '#ff0055' : '#00ffcc';
+            ctx.fillRect(x + 12, y + 1, 4, 3);
+
+            ctx.restore();
+        }
+
+        function drawPerson(p) {
+            let x = Math.floor(p.x);
+            let y = Math.floor(p.y);
+            
+            ctx.fillStyle = (p.state === 'abducting') ? '#00ffff' : '#ffffff';
+
+            // Animação baseada em frames com alteração de movimentos dos pixels para simular pernas e braços
+            let anim = Math.floor((frameCount + p.frameOffset) / 8) % 3;
+            if (p.state === 'abducting') anim = 3; // Estado de abdução/desespero
+
+            // Cabeça (Pixel block)
+            ctx.fillRect(x - 2, y - 16, 5, 5);
+            // Corpo/Tronco
+            ctx.fillRect(x - 1, y - 11, 3, 7);
+
+            if (anim === 0) {
+                // Pernas abertas, braços para baixo
+                ctx.fillRect(x - 3, y - 4, 2, 5); // Perna esq
+                ctx.fillRect(x + 2, y - 4, 2, 5); // Perna dir
+                ctx.fillRect(x - 3, y - 11, 2, 5); // Braço esq
+                ctx.fillRect(x + 2, y - 11, 2, 5); // Braço dir
+            } else if (anim === 1) {
+                // Passada intermédia
+                ctx.fillRect(x - 1, y - 4, 2, 5);
+                ctx.fillRect(x + 1, y - 4, 2, 5);
+                ctx.fillRect(x - 2, y - 10, 1, 5);
+                ctx.fillRect(x + 2, y - 10, 1, 5);
+            } else if (anim === 2) {
+                // Pernas invertidas / balanço de braço
+                ctx.fillRect(x - 2, y - 4, 2, 5);
+                ctx.fillRect(x + 1, y - 4, 2, 5);
+                ctx.fillRect(x - 3, y - 9, 2, 4);
+                ctx.fillRect(x + 2, y - 11, 2, 5);
+            } else {
+                // Abduzido: Pernas esticadas de susto e braços levantados para o alto!
+                ctx.fillRect(x - 2, y - 4, 1, 5);
+                ctx.fillRect(x + 2, y - 4, 1, 5);
+                ctx.fillRect(x - 3, y - 17, 2, 5); // Braço erguido esq
+                ctx.fillRect(x + 2, y - 17, 2, 5); // Braço erguido dir
+            }
+        }
+
+        function drawBomb(b) {
+            ctx.fillStyle = '#ff2233';
+            ctx.beginPath();
+            ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+            ctx.fill();
+            // Detalhe de pavio pixel art
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(b.x - 1, b.y - b.radius - 3, 2, 3);
+            // Faísca piscante
+            if (frameCount % 6 < 3) {
+                ctx.fillStyle = '#ffaa00';
+                ctx.fillRect(b.x - 3, b.y - b.radius - 6, 6, 3);
+            }
+        }
+
+        function drawSignal(s) {
+            ctx.fillStyle = '#00ff66';
+            // Formato clássico de cruz médica retro reluzente
+            if (frameCount % 10 < 5) ctx.fillStyle = '#ffffff';
+            ctx.fillRect(s.x - 3, s.y - 10, 6, 20);
+            ctx.fillRect(s.x - 10, s.y - 3, 20, 6);
+        }
+
+        function drawBackgroundCity() {
+            // Céu Noturno Estrelado
+            ctx.fillStyle = '#04040e';
+            ctx.fillRect(0, 0, width, height);
+
+            // Estrelas piscantes de fundo
+            ctx.fillStyle = '#ffffff';
+            for (let i = 0; i < 35; i++) {
+                let starX = (Math.sin(i * 4523) * 0.5 + 0.5) * width;
+                let starY = (Math.cos(i * 9841) * 0.5 + 0.5) * (height * 0.5);
+                if ((i + Math.floor(frameCount / 25)) % 3 !== 0) {
+                    ctx.fillRect(Math.floor(starX), Math.floor(starY), 2, 2);
+                }
+            }
+
+            // Desenhar Prédios Procedurais com janelas
+            buildings.forEach(b => {
+                ctx.fillStyle = b.color;
+                ctx.fillRect(b.x, height - b.h - 40, b.w, b.h);
+                
+                // Desenhar as pequenas janelas pixeladas acesadas
+                b.windows.forEach(w => {
+                    ctx.fillStyle = w.color;
+                    ctx.fillRect(b.x + w.dx, height - b.h - 40 + w.dy, 4, 4);
+                });
+            });
+
+            // Calçada e Ruas no fundo inferior
+            ctx.fillStyle = '#1c1c24'; // Cor da rua asfalto escuro retrô
+            ctx.fillRect(0, streetY, width, height - streetY);
+            
+            // Linha divisória da rua pontilhada amarela
+            ctx.fillStyle = '#8c8c00';
+            for (let rx = 0; rx < width; rx += 40) {
+                ctx.fillRect(rx, streetY + 22, 20, 3);
+            }
+
+            // Guia / Calçada superior da rua
+            ctx.fillStyle = '#3a3a4a';
+            ctx.fillRect(0, streetY, width, 4);
+        }
+
+        function drawOnScreenControls() {
+            // Só desenha se o dispositivo suportar touch nativo para não poluir PC
+            if (!('ontouchstart' in window)) return;
+
+            // Joystick Visual Esquerdo
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.beginPath();
+            ctx.arc(joyBaseX, joyBaseY, 40, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(0, 255, 200, 0.4)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Direcional Centralizado / Mover
+            ctx.fillStyle = 'rgba(0, 255, 200, 0.5)';
+            ctx.beginPath();
+            ctx.arc(joyBaseX + joyX, joyBaseY + joyY, 18, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Botão de Ação Direito (Abduzir)
+            ctx.fillStyle = isAbducting ? 'rgba(255, 0, 85, 0.5)' : 'rgba(255, 255, 255, 0.15)';
+            ctx.beginPath();
+            ctx.arc(width - 80, height - 80, 40, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = isAbducting ? '#ff0055' : 'rgba(255, 255, 255, 0.4)';
+            ctx.stroke();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 11px Courier New';
+            ctx.textAlign = 'center';
+            ctx.fillText('RAIO', width - 80, height - 76);
+        }
+
+        // Loop de Atualização de Lógica
+        function updateGameLogic() {
+            if (gameState !== 'PLAYING') return;
+
+            // Reduzir frames de invulnerabilidade/piscado
+            if (ufo.invulnerableFrames > 0) ufo.invulnerableFrames--;
+
+            // Movimento Joystick virtual
+            if (joyX !== 0 || joyY !== 0) {
+                ufo.x += (joyX / 40) * ufo.speed;
+                ufo.y += (joyY / 40) * ufo.speed;
+            }
+            // Teclado Direcionais
+            if (keys['ArrowLeft'] || keys['KeyA']) ufo.x -= ufo.speed;
+            if (keys['ArrowRight'] || keys['KeyD']) ufo.x += ufo.speed;
+            if (keys['ArrowUp'] || keys['KeyW']) ufo.y -= ufo.speed;
+            if (keys['ArrowDown'] || keys['KeyS']) ufo.y += ufo.speed;
+
+            // Restrição de bordas da tela para a nave
+            ufo.x = Math.max(ufo.radius, Math.min(width - ufo.radius, ufo.x));
+            ufo.y = Math.max(ufo.radius, Math.min(streetY - 10, ufo.y)); // Não deixa passar do chão da rua
+
+            // Logica do Feixe de Abdução
+            if (isAbducting) {
+                soundAbduction();
+                // Renderização do feixe de luz amarelo translúcido
+                ctx.save();
+                let pulseWidth = 35 + Math.sin(frameCount * 0.5) * 6;
+                let gradient = ctx.createLinearGradient(ufo.x, ufo.y, ufo.x, streetY);
+                gradient.addColorStop(0, 'rgba(255, 255, 0, 0.5)');
+                gradient.addColorStop(1, 'rgba(0, 255, 200, 0.05)');
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.moveTo(ufo.x - 4, ufo.y + 6);
+                ctx.lineTo(ufo.x - pulseWidth, streetY);
+                ctx.lineTo(ufo.x + pulseWidth, streetY);
+                ctx.lineTo(ufo.x + 4, ufo.y + 6);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            // Gerenciar Humanos (Pessoas nas ruas)
+            if (Math.random() < 0.025) spawnPerson();
+            for (let i = people.length - 1; i >= 0; i--) {
+                let p = people[i];
+                if (p.state === 'walking') {
+                    p.x += p.vx;
+                    // Remove se sair da tela lateralmente
+                    if (p.x < -40 || p.x > width + 40) {
+                        people.splice(i, 1);
+                        continue;
+                    }
+                    // Condição de captura pelo raio de luz da rua
+                    if (isAbducting && Math.abs(p.x - ufo.x) < 35 && ufo.y < p.y) {
+                        p.state = 'abducting';
+                    }
+                } else if (p.state === 'abducting') {
+                    // Sendo sugado verticalmente
+                    p.y -= 4.5;
+                    p.x += (ufo.x - p.x) * 0.12; // Centralização magnética no raio
+
+                    // Chegou na nave com sucesso
+                    if (p.y <= ufo.y + 8) {
+                        score += 10;
+                        document.getElementById('scoreDisplay').innerText = `SCORE: ${score}`;
+                        people.splice(i, 1);
+                    }
+                }
+            }
+
+            // Gerenciar Bombas inimigas
+            if (Math.random() < 0.012 + (score * 0.00008)) spawnBomb();
+            for (let i = bombs.length - 1; i >= 0; i--) {
+                let b = bombs[i];
+                b.y += b.vy;
+
+                // Testar colisão direta com a Nave alienígena
+                let dist = Math.hypot(b.x - ufo.x, b.y - ufo.y);
+                if (dist < b.radius + ufo.radius - 6) {
+                    bombs.splice(i, 1);
+                    if (ufo.invulnerableFrames === 0) {
+                        lives--;
+                        ufo.invulnerableFrames = 75; // Ativa oscilação de opacidade protetora por 1.25s
+                        document.getElementById('livesDisplay').innerText = `VIDAS: ${lives}`;
+                        soundHit();
+                        
+                        if (lives <= 0) {
+                            triggerGameOver();
+                        }
+                    }
+                } else if (b.y > height + 20) {
+                    bombs.splice(i, 1);
+                }
+            }
+
+            // Gerenciar Sinais de Vida Extra
+            if (Math.random() < 0.0025) spawnSignal();
+            for (let i = signals.length - 1; i >= 0; i--) {
+                let s = signals[i];
+                s.y += s.vy;
+
+                let dist = Math.hypot(s.x - ufo.x, s.y - ufo.y);
+                if (dist < s.radius + ufo.radius) {
+                    signals.splice(i, 1);
+                    if (lives < 5) { // Limite máximo confortável de 5 vidas
+                        lives++;
+                        document.getElementById('livesDisplay').innerText = `VIDAS: ${lives}`;
+                        soundExtraLife();
+                    }
+                } else if (s.y > height + 20) {
+                    signals.splice(i, 1);
+                }
+            }
+        }
+
+        function triggerGameOver() {
+            gameState = 'GAMEOVER';
+            soundGameOver();
+            
+            // Armazenar score atual como o último jogo para a próxima sessão
+            localStorage.setItem('alienLastScore', score);
+            document.getElementById('finalScore').innerText = score;
+            document.getElementById('lastScore').innerText = lastScore;
+
+            // Atualiza recorde absoluto se necessário
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('alienHighScore', highScore);
+                document.getElementById('highScoreDisplay').innerText = `RECORDE: ${highScore}`;
+            }
+
+            // Atualizar a variável local para mostrar na próxima morte sem recarregar a página
+            lastScore = score;
+
+            document.getElementById('game-over-screen').style.display = 'flex';
+        }
+
+        // Loop de Renderização Principal do Canvas
+        function mainLoop() {
+            frameCount++;
+            
+            // 1. Desenhar Fundo e Prédios de qualquer forma
+            drawBackgroundCity();
+
+            // 2. Atualizar física e interações se ativo
+            updateGameLogic();
+
+            // 3. Desenhar Elementos ativos se não estiver em menus estáticos
+            if (gameState === 'PLAYING' || gameState === 'COUNTDOWN') {
+                signals.forEach(drawSignal);
+                bombs.forEach(drawBomb);
+                people.forEach(drawPerson);
+                drawUFO(ufo.x, ufo.y);
+            }
+
+            // 4. Desenhar os controles virtuais sobrepostos para celulares
+            drawOnScreenControls();
+
+            requestAnimationFrame(mainLoop);
+        }
+
+        // Inicializar loop primário de animação contínua
+        mainLoop();
+
+    </script>
+</body>
+</html>
