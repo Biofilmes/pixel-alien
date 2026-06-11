@@ -1,108 +1,55 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>YOU ARE ALIEN - Retro Edition</title>
     <style>
         body {
-            margin: 0;
-            padding: 0;
-            background-color: #050510;
-            color: #00ffcc;
-            font-family: 'Courier New', Courier, monospace;
-            overflow: hidden;
-            touch-action: none;
-            user-select: none;
-            -webkit-user-select: none;
+            margin: 0; padding: 0; background-color: #050510; color: #00ffcc;
+            font-family: 'Courier New', Courier, monospace; overflow: hidden;
+            touch-action: none; user-select: none; -webkit-user-select: none;
         }
-        canvas {
-            display: block;
-            image-rendering: pixelated;
-            width: 100vw;
-            height: 100vh;
-        }
+        canvas { display: block; image-rendering: pixelated; width: 100vw; height: 100vh; }
         .overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: rgba(5, 5, 15, 0.9);
-            text-align: center;
-            box-sizing: border-box;
-            padding: 20px;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            background: rgba(5, 5, 15, 0.9); text-align: center; box-sizing: border-box; padding: 20px;
+            z-index: 10;
         }
-        h1 {
-            font-size: 36px;
-            margin-bottom: 10px;
-            color: #ff0055;
-            text-shadow: 3px 3px 0px #00ffff;
-            letter-spacing: 2px;
-            animation: pulse 1.5s infinite alternate;
-        }
+        h1 { font-size: 36px; margin-bottom: 10px; color: #ff0055; text-shadow: 3px 3px 0px #00ffff; letter-spacing: 2px; animation: pulse 1.5s infinite alternate; }
         @keyframes pulse {
             from { transform: scale(0.98); text-shadow: 2px 2px 0px #00ffff; }
             to { transform: scale(1.02); text-shadow: 4px 4px 0px #ff0055; color: #00ffff; }
         }
-        p {
-            font-size: 16px;
-            color: #ffffff;
-            margin: 8px 0;
-        }
+        p { font-size: 16px; color: #ffffff; margin: 8px 0; }
         .btn {
-            background-color: #00ffcc;
-            color: #050510;
-            border: 4px solid #ffffff;
-            padding: 12px 28px;
-            font-family: 'Courier New', Courier, monospace;
-            font-weight: bold;
-            font-size: 20px;
-            margin-top: 25px;
-            cursor: pointer;
-            box-shadow: 4px 4px 0px #ff0055;
-            text-transform: uppercase;
+            background-color: #00ffcc; color: #050510; border: 4px solid #ffffff;
+            padding: 12px 28px; font-family: 'Courier New', Courier, monospace;
+            font-weight: bold; font-size: 20px; margin-top: 25px; cursor: pointer;
+            box-shadow: 4px 4px 0px #ff0055; text-transform: uppercase;
         }
-        .btn:active {
-            transform: translate(2px, 2px);
-            box-shadow: 2px 2px 0px #ff0055;
-        }
+        .btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0px #ff0055; }
+        
+        .btn-red { background-color: #ff0055; color: #fff; box-shadow: 4px 4px 0px #00ffcc; }
+        .btn-red:active { box-shadow: 2px 2px 0px #00ffcc; }
+        .btn-group { display: flex; gap: 20px; margin-top: 20px; }
+
         #ui-layer {
-            position: absolute;
-            top: env(safe-area-inset-top, 10px);
-            left: env(safe-area-inset-left, 10px);
-            right: env(safe-area-inset-right, 10px);
-            pointer-events: none;
-            display: flex;
-            justify-content: space-between;
-            font-size: 14px;
-            font-weight: bold;
-            text-shadow: 2px 2px 0 #000;
-            z-index: 5;
+            position: absolute; top: calc(env(safe-area-inset-top, 10px) + 15px);
+            left: env(safe-area-inset-left, 10px); right: env(safe-area-inset-right, 10px);
+            pointer-events: none; display: flex; justify-content: space-between;
+            font-size: 14px; font-weight: bold; text-shadow: 2px 2px 0 #000; z-index: 5;
         }
-        .ui-box {
-            background: rgba(0, 0, 0, 0.6);
-            padding: 6px 12px;
-            border: 1px solid #00ffcc;
-            border-radius: 4px;
-        }
+        .ui-box { background: rgba(0, 0, 0, 0.6); padding: 8px 12px; border: 1px solid #00ffcc; border-radius: 4px; }
         #countdown-overlay {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 80px;
-            font-weight: bold;
-            color: #00ffcc;
-            text-shadow: 4px 4px 0px #ff0055;
-            display: none;
-            pointer-events: none;
-            z-index: 4;
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 80px; font-weight: bold; color: #00ffcc; text-shadow: 4px 4px 0px #ff0055;
+            display: none; pointer-events: none; z-index: 4;
         }
+        
+        /* Ocultar menus por padrão */
+        #pause-screen, #quit-screen { display: none; }
     </style>
 </head>
 <body>
@@ -113,19 +60,31 @@
         <div class="ui-box" id="highScoreDisplay">RECORDE: 0</div>
     </div>
 
-    <!-- Tela de Título Inicial -->
     <div id="title-screen" class="overlay">
         <h1>YOU ARE ALIEN</h1>
-        <p>ABDUZA OS HUMANOS NAS RUAS</p>
-        <p>DESVIE DAS BOMBAS</p>
-        <p>COLETE SINAIS VERDES PARA VIDA</p>
+        <p>ABDUZA HUMANOS NAS RUAS</p>
+        <p>SOBREVIVA ÀS FORÇAS ARMADAS (CUIDADO COM CAÇAS!)</p>
+        <p>[P] PAUSAR &nbsp;|&nbsp; [ESC] SAIR DO JOGO</p>
         <button class="btn" onclick="initGameSequence()">INICIAR INVASÃO</button>
     </div>
 
-    <!-- Contagem Regressiva Transparente -->
     <div id="countdown-overlay">3</div>
 
-    <!-- Tela de Game Over -->
+    <div id="pause-screen" class="overlay">
+        <h1>JOGO PAUSADO</h1>
+        <button class="btn" onclick="resumeGame()">CONTINUAR (P)</button>
+    </div>
+
+    <div id="quit-screen" class="overlay">
+        <h1 style="color: #ffaa00;">DESEJA SAIR?</h1>
+        <p>A SUA INVASÃO SERÁ ABORTADA.</p>
+        <p style="font-size: 24px; color: #00ffcc; margin-top:15px;">SCORE ATUAL: <span id="quitScore">0</span></p>
+        <div class="btn-group">
+            <button class="btn btn-red" onclick="confirmQuit()">SIM, SAIR</button>
+            <button class="btn" onclick="cancelQuit()">NÃO, VOLTAR (ESC)</button>
+        </div>
+    </div>
+
     <div id="game-over-screen" class="overlay" style="display: none;">
         <h1 style="color: #ff0055; text-shadow: 3px 3px 0 #fff;">FIM DE JOGO</h1>
         <div style="background: rgba(255,255,255,0.1); padding: 15px; border: 2px dashed #ff0055; margin: 15px 0;">
@@ -141,8 +100,9 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
-        // Estado do Jogo: 'TITLE', 'COUNTDOWN', 'PLAYING', 'GAMEOVER'
+        // Estados do Jogo: 'TITLE', 'COUNTDOWN', 'PLAYING', 'PAUSED', 'QUIT_CONFIRM', 'GAMEOVER'
         let gameState = 'TITLE';
+        let prevState = 'PLAYING'; // Para saber de onde o QUIT foi chamado
         let width, height;
         let streetY;
 
@@ -151,12 +111,12 @@
             height = window.innerHeight;
             canvas.width = width;
             canvas.height = height;
-            streetY = height - 50; // Posição das ruas
+            streetY = height - 60;
         }
         window.addEventListener('resize', resize);
         resize();
 
-        // Variáveis de Controle e Score
+        // Variáveis Principais
         let score = 0;
         let lives = 3;
         let highScore = localStorage.getItem('alienHighScore') || 0;
@@ -164,609 +124,520 @@
         document.getElementById('highScoreDisplay').innerText = `RECORDE: ${highScore}`;
 
         let frameCount = 0;
+        let lastTime = 0;
+        let gameTimeMs = 0; // Tempo real de jogo em milissegundos
         let countdownVal = 3;
         let countdownTimer = null;
 
-        // Entidades
-        const ufo = { 
-            x: width / 2, 
-            y: height / 4, 
-            vx: 0, 
-            vy: 0, 
-            speed: 5, 
-            radius: 24,
-            invulnerableFrames: 0 
-        };
-        let people = [];
-        let bombs = [];
-        let signals = [];
-        let buildings = [];
+        const ufo = { x: width / 2, y: height / 4, vx: 0, vy: 0, speed: 5, radius: 24, invulnerableFrames: 0 };
+        
+        let people = [], bombs = [], signals = [], buildings = [];
+        let airplanes = [], helicopters = [], jets = [], rockets = [];
+        let projectiles = [], particles = [];
+        let vehicles = []; // Ônibus e carros
+        let clouds = [];
 
-        // Gerar prédios estáticos de fundo (Pixel art procedural)
+        // --- SISTEMA DE TEMPO E CLIMA ---
+        // 5m = 300000ms | 2m = 120000ms
+        const NIGHT_DUR = 300000;
+        const DAWN_DUR = 120000;
+        const DAY_DUR = 300000;
+        const DUSK_DUR = 120000;
+        const TOTAL_CYCLE = NIGHT_DUR + DAWN_DUR + DAY_DUR + DUSK_DUR; // 14 min (840000ms)
+
+        let currentEnv = { sky: '#04040e', bldg: '#121224', win: '#ffcc44', isDay: false };
+
+        function lerpColor(a, b, amount) { 
+            const ah = parseInt(a.replace(/#/g, ''), 16),
+                  ar = ah >> 16, ag = ah >> 8 & 0xff, ab = ah & 0xff,
+                  bh = parseInt(b.replace(/#/g, ''), 16),
+                  br = bh >> 16, bg = bh >> 8 & 0xff, bb = bh & 0xff,
+                  rr = ar + amount * (br - ar),
+                  rg = ag + amount * (bg - ag),
+                  rb = ab + amount * (bb - ab);
+            return '#' + ((1 << 24) + (rr << 16) + (rg << 8) + rb | 0).toString(16).slice(1).padStart(6, '0');
+        }
+
+        function updateEnvironment() {
+            let cycleTime = gameTimeMs % TOTAL_CYCLE;
+            let p; // Progresso (0 a 1)
+            
+            if (cycleTime < NIGHT_DUR) { // NOITE
+                currentEnv.sky = '#04040e'; currentEnv.bldg = '#121224'; currentEnv.win = '#ffcc44'; currentEnv.isDay = false;
+            } else if (cycleTime < NIGHT_DUR + DAWN_DUR) { // AMANHECER (Noite -> Dia)
+                p = (cycleTime - NIGHT_DUR) / DAWN_DUR;
+                currentEnv.sky = lerpColor('#04040e', '#7ec0ee', p);
+                currentEnv.bldg = lerpColor('#121224', '#888888', p);
+                currentEnv.win = lerpColor('#ffcc44', '#111111', p);
+                currentEnv.isDay = p > 0.8; // Quase dia
+            } else if (cycleTime < NIGHT_DUR + DAWN_DUR + DAY_DUR) { // DIA
+                currentEnv.sky = '#7ec0ee'; currentEnv.bldg = '#888888'; currentEnv.win = '#222222'; currentEnv.isDay = true;
+            } else { // ENTARDECER (Dia -> Noite)
+                p = (cycleTime - (NIGHT_DUR + DAWN_DUR + DAY_DUR)) / DUSK_DUR;
+                // Entardecer tem um tom alaranjado no meio do caminho antes de ficar escuro
+                let skyColor = p < 0.5 ? lerpColor('#7ec0ee', '#ff8c00', p * 2) : lerpColor('#ff8c00', '#04040e', (p - 0.5) * 2);
+                currentEnv.sky = skyColor;
+                currentEnv.bldg = lerpColor('#888888', '#121224', p);
+                currentEnv.win = lerpColor('#222222', '#ffcc44', p);
+                currentEnv.isDay = p < 0.2;
+            }
+        }
+
+        // --- GERAÇÃO PROCEDURAL ---
         function generateBuildings() {
             buildings = [];
             let currentX = 0;
             while (currentX < width + 100) {
                 let bWidth = Math.floor(Math.random() * 60) + 40;
                 let bHeight = Math.floor(Math.random() * (height * 0.4)) + (height * 0.2);
-                let colorType = Math.floor(Math.random() * 3);
-                let color = '#121224'; // Camada traseira padrão
-                if (colorType === 1) color = '#181830';
-                if (colorType === 2) color = '#1c1c3a';
-
-                // Janelas do prédio
+                // Variações leves de luminosidade no prédio base (multiplicador para o lerp depois)
+                let colorOffset = Math.floor(Math.random() * 3);
+                
                 let windows = [];
-                let rows = Math.floor(bHeight / 16);
-                let cols = Math.floor(bWidth / 14);
-                for (let r = 1; r < rows - 1; r++) {
-                    for (let c = 1; c < cols - 1; c++) {
-                        if (Math.random() < 0.4) { // 40% das janelas acesas
-                            windows.push({
-                                dx: c * 14,
-                                dy: bHeight - (r * 16),
-                                color: Math.random() > 0.3 ? '#ffcc44' : '#44ccff'
-                            });
-                        }
+                for (let r = 1; r < Math.floor(bHeight / 16) - 1; r++) {
+                    for (let c = 1; c < Math.floor(bWidth / 14) - 1; c++) {
+                        if (Math.random() < 0.4) windows.push({ dx: c * 14, dy: bHeight - (r * 16) });
                     }
                 }
-
-                buildings.push({
-                    x: currentX,
-                    w: bWidth,
-                    h: bHeight,
-                    color: color,
-                    windows: windows
-                });
-                currentX += bWidth - 5; // Pequena sobreposição para evitar frestas
+                buildings.push({ x: currentX, w: bWidth, h: bHeight, offset: colorOffset, windows: windows });
+                currentX += bWidth - 5; 
             }
         }
         generateBuildings();
         window.addEventListener('resize', generateBuildings);
 
-        // Sistema de Áudio Nativo Suave (Web Audio API)
+        // --- SISTEMA DE ÁUDIO SUAVE ---
         let audioCtx = null;
-        function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-        }
-
-        function playSoftTone(freq, type, duration, volume = 0.1, targetFreq = null) {
-            if (!audioCtx) return;
+        function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+        function playTone(f, t, d, v=0.1) {
+            if (!audioCtx || audioCtx.state !== 'running') return;
             try {
-                let osc = audioCtx.createOscillator();
-                let gainNode = audioCtx.createGain();
-                
-                osc.type = type; // 'sine' ou 'triangle' para som suave
-                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                if (targetFreq) {
-                    osc.frequency.exponentialRampToValueAtTime(targetFreq, audioCtx.currentTime + duration);
-                }
-                
-                gainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
-                gainNode.gain.linearRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
-                
-                osc.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-                
-                osc.start();
-                osc.stop(audioCtx.currentTime + duration);
-            } catch(e) { console.log("Erro de áudio:", e); }
+                let osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+                osc.type = t; osc.frequency.setValueAtTime(f, audioCtx.currentTime);
+                gain.gain.setValueAtTime(v, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.0001, audioCtx.currentTime + d);
+                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + d);
+            } catch(e) {}
         }
+        function soundBeep() { playTone(440, 'sine', 0.12, 0.1); }
+        function soundStart() { playTone(880, 'sine', 0.08, 0.1); setTimeout(() => playTone(1174, 'sine', 0.25, 0.08), 80); }
+        function soundHit() { playTone(180, 'triangle', 0.35, 0.2); }
+        function soundAbduction() { if(frameCount%12===0) playTone(350+Math.sin(frameCount*0.3)*40, 'sine', 0.08, 0.03); }
+        function soundEnemy() { playTone(600, 'square', 0.1, 0.02); }
+        function soundExp() { playTone(100, 'sawtooth', 0.4, 0.1); }
 
-        // Sons específicos do jogo
-        function soundBeep(high = false) {
-            // Sons senoidais muito limpos e suaves
-            playSoftTone(high ? 587.33 : 440, 'sine', 0.12, 0.1); 
-        }
+        // --- CONTROLES E INPUTS ---
+        let joyX = 0, joyY = 0; let isAbducting = false; let joyBaseX = 80, joyBaseY = height - 80;
+        const keys = {};
 
-        function soundStartSignal() {
-            playSoftTone(880, 'sine', 0.08, 0.1);
-            setTimeout(() => playSoftTone(1174.66, 'sine', 0.25, 0.08), 80);
-        }
-
-        function soundHit() {
-            // Onda triangular suave descendente simulando impacto macio
-            playSoftTone(180, 'triangle', 0.35, 0.2, 50);
-        }
-
-        function soundAbduction() {
-            if (frameCount % 12 === 0) {
-                playSoftTone(350 + Math.sin(frameCount * 0.3) * 40, 'sine', 0.08, 0.04);
-            }
-        }
-
-        function soundExtraLife() {
-            playSoftTone(523.25, 'sine', 0.08, 0.08);
-            setTimeout(() => playSoftTone(659.25, 'sine', 0.08, 0.08), 70);
-            setTimeout(() => playSoftTone(783.99, 'sine', 0.15, 0.08), 140);
-        }
-
-        function soundGameOver() {
-            // Transição melancólica suave decrescente
-            playSoftTone(293.66, 'sine', 0.25, 0.15);
-            setTimeout(() => playSoftTone(277.18, 'sine', 0.25, 0.15), 200);
-            setTimeout(() => playSoftTone(220.00, 'sine', 0.5, 0.12), 400);
-        }
-
-        // Controles Mobile (Touch)
-        let joyX = 0, joyY = 0;
-        let isAbducting = false;
-        let joyBaseX = 80, joyBaseY = height - 80;
-
+        // Touch
         window.addEventListener('touchstart', handleTouch, { passive: false });
         window.addEventListener('touchmove', handleTouch, { passive: false });
         window.addEventListener('touchend', handleTouchEnd, { passive: false });
+        function handleTouch(e) {
+            if (gameState !== 'PLAYING') return;
+            e.preventDefault(); joyBaseY = height - 80;
+            let leftTouch = null, rightTouchActive = false;
+            for (let i = 0; i < e.touches.length; i++) {
+                if (e.touches[i].clientX < width / 2) leftTouch = e.touches[i]; else rightTouchActive = true;
+            }
+            if (leftTouch) {
+                let dx = leftTouch.clientX - joyBaseX, dy = leftTouch.clientY - joyBaseY, dist = Math.hypot(dx, dy);
+                if (dist > 40) { joyX = (dx / dist) * 40; joyY = (dy / dist) * 40; } else { joyX = dx; joyY = dy; }
+            }
+            isAbducting = rightTouchActive;
+        }
+        function handleTouchEnd(e) {
+            if (gameState !== 'PLAYING') return;
+            e.preventDefault(); let leftActive = false, rightActive = false;
+            for (let i = 0; i < e.touches.length; i++) {
+                if (e.touches[i].clientX < width / 2) leftActive = true; else rightActive = true;
+            }
+            if (!leftActive) { joyX = 0; joyY = 0; }
+            if (!rightActive) isAbducting = false;
+        }
 
-        // Teclado Fallback
-        const keys = {};
+        // Teclado (Movimento, Pausa e Sair)
         window.addEventListener('keydown', e => { 
             keys[e.code] = true; 
             if(e.code === 'Space' || e.code === 'KeyK') isAbducting = true; 
+            
+            // Pausar
+            if (e.code === 'KeyP') {
+                if (gameState === 'PLAYING') {
+                    gameState = 'PAUSED';
+                    document.getElementById('pause-screen').style.display = 'flex';
+                } else if (gameState === 'PAUSED') {
+                    resumeGame();
+                }
+            }
+            
+            // Sair (ESC)
+            if (e.code === 'Escape') {
+                if (gameState === 'PLAYING' || gameState === 'PAUSED') {
+                    prevState = gameState; // Salva se estava jogando ou pausado
+                    gameState = 'QUIT_CONFIRM';
+                    document.getElementById('pause-screen').style.display = 'none';
+                    document.getElementById('quitScore').innerText = score;
+                    document.getElementById('quit-screen').style.display = 'flex';
+                    keys['ArrowLeft'] = keys['ArrowRight'] = keys['ArrowUp'] = keys['ArrowDown'] = false; // reset keys
+                } else if (gameState === 'QUIT_CONFIRM') {
+                    cancelQuit(); // Esc novamente cancela a saída
+                }
+            }
         });
         window.addEventListener('keyup', e => { 
             keys[e.code] = false; 
             if(e.code === 'Space' || e.code === 'KeyK') isAbducting = false; 
         });
 
-        function handleTouch(e) {
-            if (gameState !== 'PLAYING') return;
-            e.preventDefault();
-            joyBaseY = height - 80; // Atualiza dinamicamente caso mude tela
-            let touches = e.touches;
-            let leftTouch = null;
-            let rightTouchActive = false;
-
-            for (let i = 0; i < touches.length; i++) {
-                let t = touches[i];
-                if (t.clientX < width / 2) {
-                    leftTouch = t;
-                } else {
-                    rightTouchActive = true;
-                }
+        // Funções de Interface
+        function resumeGame() {
+            gameState = 'PLAYING';
+            document.getElementById('pause-screen').style.display = 'none';
+            lastTime = performance.now(); // Previne salto no tempo ao despausar
+        }
+        function cancelQuit() {
+            document.getElementById('quit-screen').style.display = 'none';
+            if (prevState === 'PAUSED') {
+                gameState = 'PAUSED';
+                document.getElementById('pause-screen').style.display = 'flex';
+            } else {
+                resumeGame();
             }
-
-            if (leftTouch) {
-                let dx = leftTouch.clientX - joyBaseX;
-                let dy = leftTouch.clientY - joyBaseY;
-                let dist = Math.hypot(dx, dy);
-                let maxD = 40;
-                if (dist > maxD) {
-                    joyX = (dx / dist) * maxD;
-                    joyY = (dy / dist) * maxD;
-                } else {
-                    joyX = dx;
-                    joyY = dy;
-                }
-            }
-            isAbducting = rightTouchActive;
+        }
+        function confirmQuit() {
+            document.getElementById('quit-screen').style.display = 'none';
+            triggerGameOver();
         }
 
-        function handleTouchEnd(e) {
-            if (gameState !== 'PLAYING') return;
-            e.preventDefault();
-            let touches = e.touches;
-            let leftActive = false;
-            let rightActive = false;
-
-            for (let i = 0; i < touches.length; i++) {
-                if (touches[i].clientX < width / 2) leftActive = true;
-                else rightActive = true;
-            }
-
-            if (!leftActive) { joyX = 0; joyY = 0; }
-            if (!rightActive) { isAbducting = false; }
-        }
-
-        // Fluxo de Inicialização e Contagem Regressiva
+        // --- INICIALIZAÇÃO ---
         function initGameSequence() {
             initAudio();
             document.getElementById('title-screen').style.display = 'none';
             document.getElementById('game-over-screen').style.display = 'none';
+            document.getElementById('quit-screen').style.display = 'none';
             
-            // Reset de variáveis principais
-            score = 0;
-            lives = 3;
-            people = [];
-            bombs = [];
-            signals = [];
-            ufo.x = width / 2;
-            ufo.y = height / 4;
-            ufo.invulnerableFrames = 0;
+            score = 0; lives = 3; gameTimeMs = 0; frameCount = 0;
+            people = []; bombs = []; signals = [];
+            airplanes = []; helicopters = []; jets = []; rockets = [];
+            projectiles = []; particles = []; vehicles = []; clouds = [];
+            
+            ufo.x = width / 2; ufo.y = height / 4; ufo.invulnerableFrames = 0;
             document.getElementById('scoreDisplay').innerText = `SCORE: ${score}`;
             document.getElementById('livesDisplay').innerText = `VIDAS: ${lives}`;
 
-            // Iniciar Contagem Regressiva
-            gameState = 'COUNTDOWN';
-            countdownVal = 3;
+            gameState = 'COUNTDOWN'; countdownVal = 3;
             let overlay = document.getElementById('countdown-overlay');
-            overlay.style.display = 'block';
-            overlay.innerText = countdownVal;
-            soundBeep(false);
+            overlay.style.display = 'block'; overlay.innerText = countdownVal; soundBeep();
 
             if(countdownTimer) clearInterval(countdownTimer);
             countdownTimer = setInterval(() => {
                 countdownVal--;
-                if (countdownVal > 0) {
-                    overlay.innerText = countdownVal;
-                    soundBeep(false);
-                } else if (countdownVal === 0) {
-                    overlay.innerText = "GO!";
-                    soundStartSignal();
-                } else {
-                    clearInterval(countdownTimer);
-                    overlay.style.display = 'none';
-                    gameState = 'PLAYING';
+                if (countdownVal > 0) { overlay.innerText = countdownVal; soundBeep(); } 
+                else if (countdownVal === 0) { overlay.innerText = "GO!"; soundStart(); } 
+                else { 
+                    clearInterval(countdownTimer); overlay.style.display = 'none'; 
+                    gameState = 'PLAYING'; lastTime = performance.now();
                 }
             }, 800);
         }
 
-        // Criar Entidades
-        function spawnPerson() {
-            people.push({
-                x: Math.random() > 0.5 ? -15 : width + 15,
-                y: streetY - 2,
-                vx: (Math.random() * 0.8 + 0.5) * (Math.random() > 0.5 ? 1 : -1),
-                state: 'walking', 
-                frameOffset: Math.floor(Math.random() * 12)
+        // --- SPAWNERS ---
+        function spawnPerson() { people.push({ x: Math.random() > 0.5 ? -15 : width + 15, y: streetY - 2, vx: (Math.random() * 0.8 + 0.5) * (Math.random() > 0.5 ? 1 : -1), state: 'walking', frameOffset: Math.floor(Math.random() * 12) }); }
+        function spawnBomb() { bombs.push({ x: Math.random() * width, y: -20, vy: Math.random() * 1.5 + 1.5, radius: 6 }); }
+        function spawnSignal() { signals.push({ x: Math.random() * (width - 40) + 20, y: -20, vy: 1.2, radius: 10 }); }
+        
+        function spawnCloud() {
+            let s = Math.random() * 0.5 + 0.5;
+            clouds.push({ x: -100, y: Math.random() * (height * 0.3), vx: (Math.random() * 0.5 + 0.2) * s, scale: s });
+        }
+        function spawnVehicle() {
+            // 30% ônibus escolar, 70% carro comum
+            let type = Math.random() < 0.3 ? 'bus' : 'car';
+            let dir = Math.random() > 0.5 ? 1 : -1;
+            let color = type === 'car' ? ['#ff2233', '#2266ff', '#ffffff', '#22ff66'][Math.floor(Math.random()*4)] : '#ffcc00';
+            vehicles.push({
+                type: type,
+                x: dir === 1 ? -100 : width + 100,
+                y: streetY + (type === 'bus' ? -12 : -8), // Ônibus é mais alto
+                vx: (Math.random() * 2 + 2) * dir,
+                color: color
             });
         }
-
-        function spawnBomb() {
-            bombs.push({
-                x: Math.random() * width,
-                y: -20,
-                vy: Math.random() * 1.5 + 1.5,
-                radius: 9
-            });
-        }
-
-        function spawnSignal() {
-            signals.push({
-                x: Math.random() * (width - 40) + 20,
-                y: -20,
-                vy: 1.2,
-                radius: 10
-            });
-        }
-
-        // Funções de Renderização Pixel Art Nativas
-        function drawUFO(x, y) {
-            ctx.save();
-            // Efeito de oscilação de opacidade por dano
-            if (ufo.invulnerableFrames > 0) {
-                let wave = Math.sin(frameCount * 0.6) * 0.4 + 0.6; // Oscila opacidade suavemente entre 0.2 e 1.0
-                ctx.globalAlpha = wave;
-            }
-
-            // Cúpula Alien (Vidro)
-            ctx.fillStyle = 'rgba(0, 255, 230, 0.65)';
-            ctx.beginPath();
-            ctx.arc(x, y - 4, 12, Math.PI, 0);
-            ctx.fill();
-
-            // Corpo de metal da nave (Pixelated Ellipse)
-            ctx.fillStyle = '#8899a6';
-            ctx.beginPath();
-            ctx.ellipse(x, y + 2, 26, 8, 0, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Janelas/Luzes inferiores piscantes
-            let t = Math.floor(frameCount / 10) % 3;
-            ctx.fillStyle = (t === 0) ? '#ff0055' : '#00ffcc';
-            ctx.fillRect(x - 16, y + 1, 4, 3);
-            ctx.fillStyle = (t === 1) ? '#ff0055' : '#ffff00';
-            ctx.fillRect(x - 2, y + 2, 4, 3);
-            ctx.fillStyle = (t === 2) ? '#ff0055' : '#00ffcc';
-            ctx.fillRect(x + 12, y + 1, 4, 3);
-
-            ctx.restore();
-        }
-
-        function drawPerson(p) {
-            let x = Math.floor(p.x);
-            let y = Math.floor(p.y);
-            
-            ctx.fillStyle = (p.state === 'abducting') ? '#00ffff' : '#ffffff';
-
-            // Animação baseada em frames com alteração de movimentos dos pixels para simular pernas e braços
-            let anim = Math.floor((frameCount + p.frameOffset) / 8) % 3;
-            if (p.state === 'abducting') anim = 3; // Estado de abdução/desespero
-
-            // Cabeça (Pixel block)
-            ctx.fillRect(x - 2, y - 16, 5, 5);
-            // Corpo/Tronco
-            ctx.fillRect(x - 1, y - 11, 3, 7);
-
-            if (anim === 0) {
-                // Pernas abertas, braços para baixo
-                ctx.fillRect(x - 3, y - 4, 2, 5); // Perna esq
-                ctx.fillRect(x + 2, y - 4, 2, 5); // Perna dir
-                ctx.fillRect(x - 3, y - 11, 2, 5); // Braço esq
-                ctx.fillRect(x + 2, y - 11, 2, 5); // Braço dir
-            } else if (anim === 1) {
-                // Passada intermédia
-                ctx.fillRect(x - 1, y - 4, 2, 5);
-                ctx.fillRect(x + 1, y - 4, 2, 5);
-                ctx.fillRect(x - 2, y - 10, 1, 5);
-                ctx.fillRect(x + 2, y - 10, 1, 5);
-            } else if (anim === 2) {
-                // Pernas invertidas / balanço de braço
-                ctx.fillRect(x - 2, y - 4, 2, 5);
-                ctx.fillRect(x + 1, y - 4, 2, 5);
-                ctx.fillRect(x - 3, y - 9, 2, 4);
-                ctx.fillRect(x + 2, y - 11, 2, 5);
-            } else {
-                // Abduzido: Pernas esticadas de susto e braços levantados para o alto!
-                ctx.fillRect(x - 2, y - 4, 1, 5);
-                ctx.fillRect(x + 2, y - 4, 1, 5);
-                ctx.fillRect(x - 3, y - 17, 2, 5); // Braço erguido esq
-                ctx.fillRect(x + 2, y - 17, 2, 5); // Braço erguido dir
+        function spawnAirplane() { airplanes.push({ x: Math.random() > 0.5 ? -150 : width + 150, y: Math.random() * (height * 0.2) + 20, vx: (Math.random() * 2 + 1.5) * (Math.random() > 0.5 ? 1 : -1) }); }
+        function spawnHelicopter() { helicopters.push({ x: Math.random() > 0.5 ? -40 : width + 40, y: Math.random() * (height * 0.4) + 40, vx: (Math.random() * 1 + 0.5) * (Math.random() > 0.5 ? 1 : -1), lastShot: 0, isFalling: false }); }
+        function spawnJet() { jets.push({ x: Math.random() > 0.5 ? -60 : width + 60, y: Math.random() * (height * 0.4) + 20, vx: (Math.random() * 2 + 3) * (Math.random() > 0.5 ? 1 : -1), lastShot: 0, isFalling: false }); }
+        function spawnRocket() { rockets.push({ x: Math.random() * width, y: streetY, vy: -(Math.random() * 2 + 2), radius: 5 }); }
+        
+        function createExplosion(x, y, color) {
+            soundExp();
+            for(let i=0; i<15; i++) {
+                particles.push({ x: x, y: y, vx: (Math.random() - 0.5) * 6, vy: (Math.random() - 0.5) * 6, life: 30 + Math.random() * 20, maxLife: 50, color: color });
             }
         }
 
-        function drawBomb(b) {
-            ctx.fillStyle = '#ff2233';
-            ctx.beginPath();
-            ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
-            ctx.fill();
-            // Detalhe de pavio pixel art
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(b.x - 1, b.y - b.radius - 3, 2, 3);
-            // Faísca piscante
-            if (frameCount % 6 < 3) {
-                ctx.fillStyle = '#ffaa00';
-                ctx.fillRect(b.x - 3, b.y - b.radius - 6, 6, 3);
-            }
-        }
-
-        function drawSignal(s) {
-            ctx.fillStyle = '#00ff66';
-            // Formato clássico de cruz médica retro reluzente
-            if (frameCount % 10 < 5) ctx.fillStyle = '#ffffff';
-            ctx.fillRect(s.x - 3, s.y - 10, 6, 20);
-            ctx.fillRect(s.x - 10, s.y - 3, 20, 6);
-        }
-
+        // --- RENDERIZAÇÃO ---
         function drawBackgroundCity() {
-            // Céu Noturno Estrelado
-            ctx.fillStyle = '#04040e';
-            ctx.fillRect(0, 0, width, height);
+            ctx.fillStyle = currentEnv.sky; ctx.fillRect(0, 0, width, height);
 
-            // Estrelas piscantes de fundo
-            ctx.fillStyle = '#ffffff';
-            for (let i = 0; i < 35; i++) {
-                let starX = (Math.sin(i * 4523) * 0.5 + 0.5) * width;
-                let starY = (Math.cos(i * 9841) * 0.5 + 0.5) * (height * 0.5);
-                if ((i + Math.floor(frameCount / 25)) % 3 !== 0) {
-                    ctx.fillRect(Math.floor(starX), Math.floor(starY), 2, 2);
+            // Nuvens (visíveis se não for noite profunda)
+            let cycleTime = gameTimeMs % TOTAL_CYCLE;
+            if (cycleTime > NIGHT_DUR - 30000 && cycleTime < TOTAL_CYCLE - 30000) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                clouds.forEach(c => {
+                    ctx.beginPath();
+                    ctx.arc(c.x, c.y, 20 * c.scale, 0, Math.PI * 2);
+                    ctx.arc(c.x + 15*c.scale, c.y - 10*c.scale, 25 * c.scale, 0, Math.PI * 2);
+                    ctx.arc(c.x + 30*c.scale, c.y, 20 * c.scale, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+            }
+
+            // Estrelas piscantes de fundo (Visíveis de noite/entardecer/amanhecer)
+            if (currentEnv.sky !== '#7ec0ee') { // Se não for totalmente dia
+                let starOpacity = currentEnv.isDay ? 0.2 : 0.8;
+                ctx.fillStyle = `rgba(255, 255, 255, ${starOpacity})`;
+                for (let i = 0; i < 35; i++) {
+                    if ((i + Math.floor(frameCount / 25)) % 3 !== 0) ctx.fillRect(Math.floor((Math.sin(i * 4523) * 0.5 + 0.5) * width), Math.floor((Math.cos(i * 9841) * 0.5 + 0.5) * (height * 0.5)), 2, 2);
                 }
             }
 
-            // Desenhar Prédios Procedurais com janelas
+            // Prédios
             buildings.forEach(b => {
-                ctx.fillStyle = b.color;
+                ctx.fillStyle = currentEnv.bldg;
                 ctx.fillRect(b.x, height - b.h - 40, b.w, b.h);
+                // Sombras para dar volume básico no topo/lados
+                ctx.fillStyle = 'rgba(0,0,0,0.15)'; ctx.fillRect(b.x + b.w - 10, height - b.h - 40, 10, b.h);
                 
-                // Desenhar as pequenas janelas pixeladas acesadas
-                b.windows.forEach(w => {
-                    ctx.fillStyle = w.color;
-                    ctx.fillRect(b.x + w.dx, height - b.h - 40 + w.dy, 4, 4);
-                });
+                // Janelas
+                ctx.fillStyle = currentEnv.win;
+                b.windows.forEach(w => { ctx.fillRect(b.x + w.dx, height - b.h - 40 + w.dy, 4, 4); });
             });
 
-            // Calçada e Ruas no fundo inferior
-            ctx.fillStyle = '#1c1c24'; // Cor da rua asfalto escuro retrô
-            ctx.fillRect(0, streetY, width, height - streetY);
-            
-            // Linha divisória da rua pontilhada amarela
-            ctx.fillStyle = '#8c8c00';
-            for (let rx = 0; rx < width; rx += 40) {
-                ctx.fillRect(rx, streetY + 22, 20, 3);
-            }
-
-            // Guia / Calçada superior da rua
-            ctx.fillStyle = '#3a3a4a';
-            ctx.fillRect(0, streetY, width, 4);
+            // Rua
+            ctx.fillStyle = '#1c1c24'; ctx.fillRect(0, streetY, width, height - streetY);
+            ctx.fillStyle = '#8c8c00'; for (let rx = 0; rx < width; rx += 40) ctx.fillRect(rx, streetY + 22, 20, 3);
+            ctx.fillStyle = '#3a3a4a'; ctx.fillRect(0, streetY, width, 4);
         }
 
-        function drawOnScreenControls() {
-            // Só desenha se o dispositivo suportar touch nativo para não poluir PC
-            if (!('ontouchstart' in window)) return;
+        function drawVehicles() {
+            vehicles.forEach(v => {
+                ctx.save();
+                if (v.vx < 0) { ctx.translate(v.x * 2, 0); ctx.scale(-1, 1); } // Vira para a esquerda
 
-            // Joystick Visual Esquerdo
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-            ctx.beginPath();
-            ctx.arc(joyBaseX, joyBaseY, 40, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = 'rgba(0, 255, 200, 0.4)';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            // Direcional Centralizado / Mover
-            ctx.fillStyle = 'rgba(0, 255, 200, 0.5)';
-            ctx.beginPath();
-            ctx.arc(joyBaseX + joyX, joyBaseY + joyY, 18, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Botão de Ação Direito (Abduzir)
-            ctx.fillStyle = isAbducting ? 'rgba(255, 0, 85, 0.5)' : 'rgba(255, 255, 255, 0.15)';
-            ctx.beginPath();
-            ctx.arc(width - 80, height - 80, 40, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = isAbducting ? '#ff0055' : 'rgba(255, 255, 255, 0.4)';
-            ctx.stroke();
-
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 11px Courier New';
-            ctx.textAlign = 'center';
-            ctx.fillText('RAIO', width - 80, height - 76);
+                if (v.type === 'bus') {
+                    // Ônibus Escolar
+                    ctx.fillStyle = v.color; ctx.fillRect(v.x, v.y, 60, 24); // Corpo
+                    ctx.fillStyle = '#222'; ctx.fillRect(v.x + 50, v.y + 4, 8, 10); // Para-brisa
+                    ctx.fillRect(v.x + 10, v.y + 24, 10, 10); ctx.fillRect(v.x + 40, v.y + 24, 10, 10); // Rodas
+                    ctx.fillStyle = '#666'; ctx.fillRect(v.x + 12, v.y + 26, 6, 6); ctx.fillRect(v.x + 42, v.y + 26, 6, 6); // Calotas
+                    ctx.fillStyle = '#87cefa'; // Janelas passageiros
+                    for(let j=0; j<4; j++) ctx.fillRect(v.x + 5 + (j*11), v.y + 5, 8, 8);
+                    ctx.fillStyle = '#f00'; ctx.fillRect(v.x, v.y + 18, 4, 4); // Lanterna traseira
+                } else {
+                    // Carro
+                    ctx.fillStyle = v.color; 
+                    ctx.fillRect(v.x, v.y + 8, 40, 12); // Chassi base
+                    ctx.fillRect(v.x + 8, v.y, 20, 10); // Teto
+                    ctx.fillStyle = '#222'; ctx.fillRect(v.x + 6, v.y + 20, 8, 8); ctx.fillRect(v.x + 26, v.y + 20, 8, 8); // Rodas
+                    ctx.fillStyle = '#666'; ctx.fillRect(v.x + 7, v.y + 21, 6, 6); ctx.fillRect(v.x + 27, v.y + 21, 6, 6); // Calotas
+                    ctx.fillStyle = '#87cefa'; ctx.fillRect(v.x + 10, v.y + 2, 8, 6); ctx.fillRect(v.x + 20, v.y + 2, 6, 6); // Vidros
+                    ctx.fillStyle = '#ffaa00'; ctx.fillRect(v.x + 38, v.y + 10, 2, 4); // Farol
+                    ctx.fillStyle = '#f00'; ctx.fillRect(v.x, v.y + 10, 2, 4); // Lanterna traseira
+                }
+                ctx.restore();
+            });
         }
 
-        // Loop de Atualização de Lógica
-        function updateGameLogic() {
+        function drawEntities() {
+            // Nuvens
+            if (clouds.length < 5 && Math.random() < 0.005) spawnCloud();
+            for(let i=clouds.length-1; i>=0; i--) { clouds[i].x += clouds[i].vx; if(clouds[i].x > width+100) clouds.splice(i, 1); }
+
+            // Veículos de solo (Desenhados ANTES dos humanos, para humanos ficarem na frente)
+            drawVehicles();
+
+            // Aviões Comerciais Melhorados
+            airplanes.forEach(a => {
+                ctx.save();
+                if (a.vx < 0) { ctx.translate(a.x * 2, 0); ctx.scale(-1, 1); } // Espelha se for para a esquerda
+
+                // Sombra do avião
+                ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.fillRect(a.x, a.y + 20, 55, 6);
+                
+                // Fuselagem
+                ctx.fillStyle = '#ececec';
+                ctx.beginPath(); ctx.moveTo(a.x, a.y + 5); ctx.lineTo(a.x + 45, a.y + 5); ctx.quadraticCurveTo(a.x + 55, a.y + 5, a.x + 55, a.y + 10);
+                ctx.quadraticCurveTo(a.x + 55, a.y + 15, a.x + 45, a.y + 15); ctx.lineTo(a.x, a.y + 15); ctx.fill();
+                
+                // Cabine (Cockpit)
+                ctx.fillStyle = '#4488ff'; ctx.fillRect(a.x + 48, a.y + 7, 4, 3);
+                
+                // Cauda traseira
+                ctx.fillStyle = '#ececec'; ctx.beginPath(); ctx.moveTo(a.x, a.y + 5); ctx.lineTo(a.x + 10, a.y - 12); ctx.lineTo(a.x + 15, a.y - 12); ctx.lineTo(a.x + 15, a.y + 5); ctx.fill();
+                // Detalhe da cauda (Logotipo da companhia)
+                ctx.fillStyle = '#ff0055'; ctx.fillRect(a.x + 10, a.y - 8, 4, 10);
+
+                // Asa (Atrás)
+                ctx.fillStyle = '#cccccc'; ctx.beginPath(); ctx.moveTo(a.x + 25, a.y + 10); ctx.lineTo(a.x + 15, a.y - 5); ctx.lineTo(a.x + 20, a.y - 5); ctx.lineTo(a.x + 35, a.y + 10); ctx.fill();
+
+                // Turbina principal sob a asa
+                ctx.fillStyle = '#666'; ctx.fillRect(a.x + 28, a.y + 16, 12, 6);
+                ctx.fillStyle = '#333'; ctx.fillRect(a.x + 40, a.y + 17, 2, 4); // Entrada de ar
+
+                ctx.restore();
+            });
+
+            // Foguetes, Helicópteros, Jatos, Projéteis e Partículas (Lógica idêntica, código omitido da visualização gráfica mantido igual)
+            rockets.forEach(r => { ctx.fillStyle='#bbb'; ctx.fillRect(r.x-3, r.y-8, 6, 16); ctx.fillStyle='#f00'; ctx.beginPath(); ctx.moveTo(r.x-3, r.y-8); ctx.lineTo(r.x, r.y-14); ctx.lineTo(r.x+3, r.y-8); ctx.fill(); if(frameCount%4<2) { ctx.fillStyle='#fa0'; ctx.fillRect(r.x-2, r.y+8, 4, 6); } else { ctx.fillStyle='#f00'; ctx.fillRect(r.x-3, r.y+8, 6, 8); } });
+            helicopters.forEach(h => { ctx.save(); if (h.isFalling) { ctx.translate(h.x, h.y); ctx.rotate(frameCount*0.2); ctx.translate(-h.x, -h.y); } ctx.fillStyle='#2e4c23'; ctx.fillRect(h.x-15, h.y-5, 30, 12); ctx.fillRect(h.x+(h.vx>0?-25:15), h.y-2, 10, 4); ctx.fillStyle='#888'; ctx.fillRect(h.x-2, h.y-12, 4, 7); if(frameCount%4<2) ctx.fillRect(h.x-20, h.y-12, 40, 2); else ctx.fillRect(h.x-10, h.y-14, 20, 4); ctx.restore(); });
+            jets.forEach(j => { ctx.save(); if (j.isFalling) { ctx.translate(j.x, j.y); ctx.rotate(frameCount*0.3); ctx.translate(-j.x, -j.y); } ctx.fillStyle='#556'; if(j.vx>0) { ctx.beginPath(); ctx.moveTo(j.x-15, j.y); ctx.lineTo(j.x+20, j.y); ctx.lineTo(j.x-5, j.y-8); ctx.fill(); ctx.fillStyle='#223'; ctx.fillRect(j.x-10, j.y, 15, 6); if(frameCount%2===0){ ctx.fillStyle='#f80'; ctx.fillRect(j.x-22, j.y-2, 6, 4); } } else { ctx.beginPath(); ctx.moveTo(j.x+15, j.y); ctx.lineTo(j.x-20, j.y); ctx.lineTo(j.x+5, j.y-8); ctx.fill(); ctx.fillStyle='#223'; ctx.fillRect(j.x-5, j.y, 15, 6); if(frameCount%2===0){ ctx.fillStyle='#f80'; ctx.fillRect(j.x+16, j.y-2, 6, 4); } } ctx.restore(); });
+            ctx.fillStyle = '#ffaa00'; projectiles.forEach(p => { ctx.fillRect(p.x-2, p.y-2, 4, 4); });
+            particles.forEach(p => { ctx.fillStyle=p.color; ctx.globalAlpha=p.life/p.maxLife; ctx.fillRect(p.x, p.y, 3, 3); ctx.globalAlpha=1.0; });
+        }
+
+        function drawUFO(x, y) {
+            ctx.save();
+            if (ufo.invulnerableFrames > 0) ctx.globalAlpha = Math.sin(frameCount * 0.6) * 0.4 + 0.6;
+            ctx.fillStyle = 'rgba(0, 255, 230, 0.65)'; ctx.beginPath(); ctx.arc(x, y - 4, 12, Math.PI, 0); ctx.fill();
+            ctx.fillStyle = '#8899a6'; ctx.beginPath(); ctx.ellipse(x, y + 2, 26, 8, 0, 0, Math.PI * 2); ctx.fill();
+            let t = Math.floor(frameCount / 10) % 3;
+            ctx.fillStyle = (t === 0) ? '#ff0055' : '#00ffcc'; ctx.fillRect(x - 16, y + 1, 4, 3);
+            ctx.fillStyle = (t === 1) ? '#ff0055' : '#ffff00'; ctx.fillRect(x - 2, y + 2, 4, 3);
+            ctx.fillStyle = (t === 2) ? '#ff0055' : '#00ffcc'; ctx.fillRect(x + 12, y + 1, 4, 3);
+            ctx.restore();
+        }
+
+        // --- LÓGICA DE ATUALIZAÇÃO ---
+        function updateGameLogic(delta) {
             if (gameState !== 'PLAYING') return;
 
-            // Reduzir frames de invulnerabilidade/piscado
+            // Avança o tempo
+            gameTimeMs += delta;
+            updateEnvironment();
+
             if (ufo.invulnerableFrames > 0) ufo.invulnerableFrames--;
 
-            // Movimento Joystick virtual
-            if (joyX !== 0 || joyY !== 0) {
-                ufo.x += (joyX / 40) * ufo.speed;
-                ufo.y += (joyY / 40) * ufo.speed;
-            }
-            // Teclado Direcionais
+            if (joyX !== 0 || joyY !== 0) { ufo.x += (joyX / 40) * ufo.speed; ufo.y += (joyY / 40) * ufo.speed; }
             if (keys['ArrowLeft'] || keys['KeyA']) ufo.x -= ufo.speed;
             if (keys['ArrowRight'] || keys['KeyD']) ufo.x += ufo.speed;
             if (keys['ArrowUp'] || keys['KeyW']) ufo.y -= ufo.speed;
             if (keys['ArrowDown'] || keys['KeyS']) ufo.y += ufo.speed;
 
-            // Restrição de bordas da tela para a nave
             ufo.x = Math.max(ufo.radius, Math.min(width - ufo.radius, ufo.x));
-            ufo.y = Math.max(ufo.radius, Math.min(streetY - 10, ufo.y)); // Não deixa passar do chão da rua
+            ufo.y = Math.max(ufo.radius, Math.min(streetY - 10, ufo.y));
 
-            // Logica do Feixe de Abdução
+            let pulseWidth = 35 + Math.sin(frameCount * 0.5) * 6;
+
             if (isAbducting) {
                 soundAbduction();
-                // Renderização do feixe de luz amarelo translúcido
-                ctx.save();
-                let pulseWidth = 35 + Math.sin(frameCount * 0.5) * 6;
-                let gradient = ctx.createLinearGradient(ufo.x, ufo.y, ufo.x, streetY);
-                gradient.addColorStop(0, 'rgba(255, 255, 0, 0.5)');
-                gradient.addColorStop(1, 'rgba(0, 255, 200, 0.05)');
-                ctx.fillStyle = gradient;
-                ctx.beginPath();
-                ctx.moveTo(ufo.x - 4, ufo.y + 6);
-                ctx.lineTo(ufo.x - pulseWidth, streetY);
-                ctx.lineTo(ufo.x + pulseWidth, streetY);
-                ctx.lineTo(ufo.x + 4, ufo.y + 6);
-                ctx.fill();
-                ctx.restore();
             }
 
-            // Gerenciar Humanos (Pessoas nas ruas)
+
+            // Pessoas e Abdução
             if (Math.random() < 0.025) spawnPerson();
             for (let i = people.length - 1; i >= 0; i--) {
                 let p = people[i];
                 if (p.state === 'walking') {
-                    p.x += p.vx;
-                    // Remove se sair da tela lateralmente
-                    if (p.x < -40 || p.x > width + 40) {
-                        people.splice(i, 1);
-                        continue;
-                    }
-                    // Condição de captura pelo raio de luz da rua
-                    if (isAbducting && Math.abs(p.x - ufo.x) < 35 && ufo.y < p.y) {
-                        p.state = 'abducting';
-                    }
+                    p.x += p.vx; if (p.x < -40 || p.x > width + 40) { people.splice(i, 1); continue; }
+                    if (isAbducting && Math.abs(p.x - ufo.x) < 35 && ufo.y < p.y) p.state = 'abducting';
                 } else if (p.state === 'abducting') {
-                    // Sendo sugado verticalmente
-                    p.y -= 4.5;
-                    p.x += (ufo.x - p.x) * 0.12; // Centralização magnética no raio
-
-                    // Chegou na nave com sucesso
-                    if (p.y <= ufo.y + 8) {
-                        score += 10;
-                        document.getElementById('scoreDisplay').innerText = `SCORE: ${score}`;
-                        people.splice(i, 1);
-                    }
+                    p.y -= 4.5; p.x += (ufo.x - p.x) * 0.12;
+                    if (p.y <= ufo.y + 8) { score += 10; document.getElementById('scoreDisplay').innerText = `SCORE: ${score}`; people.splice(i, 1); }
                 }
             }
 
-            // Gerenciar Bombas inimigas
-            if (Math.random() < 0.012 + (score * 0.00008)) spawnBomb();
-            for (let i = bombs.length - 1; i >= 0; i--) {
-                let b = bombs[i];
-                b.y += b.vy;
+            // Veículos Terrestres
+            if (Math.random() < 0.003) spawnVehicle();
+            for (let i = vehicles.length - 1; i >= 0; i--) {
+                let v = vehicles[i]; v.x += v.vx;
+                if (v.x < -200 || v.x > width + 200) vehicles.splice(i, 1);
+            }
 
-                // Testar colisão direta com a Nave alienígena
-                let dist = Math.hypot(b.x - ufo.x, b.y - ufo.y);
-                if (dist < b.radius + ufo.radius - 6) {
-                    bombs.splice(i, 1);
-                    if (ufo.invulnerableFrames === 0) {
-                        lives--;
-                        ufo.invulnerableFrames = 75; // Ativa oscilação de opacidade protetora por 1.25s
-                        document.getElementById('livesDisplay').innerText = `VIDAS: ${lives}`;
-                        soundHit();
-                        
-                        if (lives <= 0) {
-                            triggerGameOver();
-                        }
-                    }
-                } else if (b.y > height + 20) {
-                    bombs.splice(i, 1);
+            function takeDamage() {
+                if (ufo.invulnerableFrames === 0) {
+                    lives--; ufo.invulnerableFrames = 75;
+                    document.getElementById('livesDisplay').innerText = `VIDAS: ${lives}`; soundHit();
+                    if (lives <= 0) triggerGameOver();
                 }
             }
 
-            // Gerenciar Sinais de Vida Extra
-            if (Math.random() < 0.0025) spawnSignal();
-            for (let i = signals.length - 1; i >= 0; i--) {
-                let s = signals[i];
-                s.y += s.vy;
-
-                let dist = Math.hypot(s.x - ufo.x, s.y - ufo.y);
-                if (dist < s.radius + ufo.radius) {
-                    signals.splice(i, 1);
-                    if (lives < 5) { // Limite máximo confortável de 5 vidas
-                        lives++;
-                        document.getElementById('livesDisplay').innerText = `VIDAS: ${lives}`;
-                        soundExtraLife();
-                    }
-                } else if (s.y > height + 20) {
-                    signals.splice(i, 1);
-                }
-            }
+            // Aviões, Foguetes, Helicópteros, Caças (Mesma lógica anterior mantida compacta)
+            if (Math.random() < 0.0015) spawnAirplane();
+            for(let i=airplanes.length-1; i>=0; i--) { airplanes[i].x += airplanes[i].vx; if(airplanes[i].x>width+200||airplanes[i].x<-200) airplanes.splice(i,1); }
+            if (score>30 && Math.random()<0.005+(score*0.00005)) spawnRocket();
+            for(let i=rockets.length-1; i>=0; i--){ let r=rockets[i]; r.y+=r.vy; if(Math.hypot(r.x-ufo.x, r.y-ufo.y)<r.radius+ufo.radius-4){ takeDamage(); createExplosion(r.x, r.y, '#fa0'); rockets.splice(i,1); } else if(r.y<-50) rockets.splice(i,1); }
+            if (score>50 && helicopters.length<2 && Math.random()<0.005) spawnHelicopter();
+            for(let i=helicopters.length-1; i>=0; i--){ let h=helicopters[i]; if(!h.isFalling){ h.x+=h.vx; if(frameCount-h.lastShot>100 && Math.abs(h.x-ufo.x)<150){ projectiles.push({x:h.x,y:h.y+5,vx:(ufo.x-h.x)*0.02,vy:3}); h.lastShot=frameCount; soundEnemy(); } if(isAbducting && Math.abs(h.x-ufo.x)<pulseWidth && h.y>ufo.y && h.y<streetY) h.isFalling=true; if(h.x<-100||h.x>width+100) helicopters.splice(i,1); } else { h.y+=4; if(h.y>=streetY){ createExplosion(h.x,h.y,'#ff5500'); helicopters.splice(i,1); score+=20; } } }
+            if (score>100 && jets.length<1 && Math.random()<0.003) spawnJet();
+            for(let i=jets.length-1; i>=0; i--){ let j=jets[i]; if(!j.isFalling){ j.x+=j.vx; if(j.y<ufo.y-20) j.y+=0.5; else if(j.y>ufo.y+20) j.y-=0.5; if(frameCount-j.lastShot>60 && Math.abs(j.x-ufo.x)<200){ projectiles.push({x:j.x,y:j.y,vx:j.vx>0?5:-5,vy:(ufo.y-j.y)*0.02}); j.lastShot=frameCount; soundEnemy(); } if(isAbducting && Math.abs(j.x-ufo.x)<pulseWidth && j.y>ufo.y && j.y<streetY) j.isFalling=true; if(j.x<-150||j.x>width+150) jets.splice(i,1); } else { j.y+=5; j.x+=j.vx*0.5; if(j.y>=streetY){ createExplosion(j.x,j.y,'#ffaa00'); jets.splice(i,1); score+=30; } } }
+            for(let i=projectiles.length-1; i>=0; i--){ let p=projectiles[i]; p.x+=p.vx; p.y+=p.vy; if(Math.hypot(p.x-ufo.x,p.y-ufo.y)<ufo.radius){ takeDamage(); projectiles.splice(i,1); } else if(p.y>height||p.x<0||p.x>width) projectiles.splice(i,1); }
+            for(let i=particles.length-1; i>=0; i--){ let p=particles[i]; p.x+=p.vx; p.y+=p.vy; p.life--; if(p.life<=0) particles.splice(i,1); }
+            if(Math.random()<0.012+(score*0.00008)) spawnBomb();
+            for(let i=bombs.length-1; i>=0; i--){ let b=bombs[i]; b.y+=b.vy; if(Math.hypot(b.x-ufo.x,b.y-ufo.y)<b.radius+ufo.radius-6){ bombs.splice(i,1); takeDamage(); } else if(b.y>height+20) bombs.splice(i,1); }
+            if(Math.random()<0.0025) spawnSignal();
+            for(let i=signals.length-1; i>=0; i--){ let s=signals[i]; s.y+=s.vy; if(Math.hypot(s.x-ufo.x,s.y-ufo.y)<s.radius+ufo.radius){ signals.splice(i,1); if(lives<5){ lives++; document.getElementById('livesDisplay').innerText=`VIDAS: ${lives}`; } } else if(s.y>height+20) signals.splice(i,1); }
         }
 
         function triggerGameOver() {
             gameState = 'GAMEOVER';
-            soundGameOver();
-            
-            // Armazenar score atual como o último jogo para a próxima sessão
             localStorage.setItem('alienLastScore', score);
             document.getElementById('finalScore').innerText = score;
             document.getElementById('lastScore').innerText = lastScore;
-
-            // Atualiza recorde absoluto se necessário
-            if (score > highScore) {
-                highScore = score;
-                localStorage.setItem('alienHighScore', highScore);
-                document.getElementById('highScoreDisplay').innerText = `RECORDE: ${highScore}`;
-            }
-
-            // Atualizar a variável local para mostrar na próxima morte sem recarregar a página
+            if (score > highScore) { highScore = score; localStorage.setItem('alienHighScore', highScore); document.getElementById('highScoreDisplay').innerText = `RECORDE: ${highScore}`; }
             lastScore = score;
-
             document.getElementById('game-over-screen').style.display = 'flex';
         }
 
-        // Loop de Renderização Principal do Canvas
-        function mainLoop() {
-            frameCount++;
+        // Loop Nativo e Desenhadores Base
+        function drawPerson(p) { let x=Math.floor(p.x),y=Math.floor(p.y); ctx.fillStyle=(p.state==='abducting')?'#00ffff':'#ffffff'; let anim=Math.floor((frameCount+p.frameOffset)/8)%3; if(p.state==='abducting') anim=3; ctx.fillRect(x-2,y-16,5,5); ctx.fillRect(x-1,y-11,3,7); if(anim===0){ ctx.fillRect(x-3,y-4,2,5); ctx.fillRect(x+2,y-4,2,5); ctx.fillRect(x-3,y-11,2,5); ctx.fillRect(x+2,y-11,2,5); } else if(anim===1){ ctx.fillRect(x-1,y-4,2,5); ctx.fillRect(x+1,y-4,2,5); ctx.fillRect(x-2,y-10,1,5); ctx.fillRect(x+2,y-10,1,5); } else if(anim===2){ ctx.fillRect(x-2,y-4,2,5); ctx.fillRect(x+1,y-4,2,5); ctx.fillRect(x-3,y-9,2,4); ctx.fillRect(x+2,y-11,2,5); } else{ ctx.fillRect(x-2,y-4,1,5); ctx.fillRect(x+2,y-4,1,5); ctx.fillRect(x-3,y-17,2,5); ctx.fillRect(x+2,y-17,2,5); } }
+        function drawBomb(b) { ctx.fillStyle='#ff2233'; ctx.beginPath(); ctx.arc(b.x,b.y,b.radius,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#ffffff'; ctx.fillRect(b.x-1,b.y-b.radius-3,2,3); if(frameCount%6<3){ ctx.fillStyle='#ffaa00'; ctx.fillRect(b.x-3,b.y-b.radius-6,6,3); } }
+        function drawSignal(s) { ctx.fillStyle='#00ff66'; if(frameCount%10<5) ctx.fillStyle='#ffffff'; ctx.fillRect(s.x-3,s.y-10,6,20); ctx.fillRect(s.x-10,s.y-3,20,6); }
+        function drawOnScreenControls() { if(!('ontouchstart' in window)) return; ctx.fillStyle='rgba(255,255,255,0.15)'; ctx.beginPath(); ctx.arc(joyBaseX,joyBaseY,40,0,Math.PI*2); ctx.fill(); ctx.strokeStyle='rgba(0,255,200,0.4)'; ctx.lineWidth=2; ctx.stroke(); ctx.fillStyle='rgba(0,255,200,0.5)'; ctx.beginPath(); ctx.arc(joyBaseX+joyX,joyBaseY+joyY,18,0,Math.PI*2); ctx.fill(); ctx.fillStyle=isAbducting?'rgba(255,0,85,0.5)':'rgba(255,255,255,0.15)'; ctx.beginPath(); ctx.arc(width-80,height-80,40,0,Math.PI*2); ctx.fill(); ctx.strokeStyle=isAbducting?'#ff0055':'rgba(255,255,255,0.4)'; ctx.stroke(); ctx.fillStyle='#ffffff'; ctx.font='bold 11px Courier New'; ctx.textAlign='center'; ctx.fillText('RAIO',width-80,height-76); }
+
+        function mainLoop(timestamp) {
+            let delta = timestamp - lastTime;
+            if (delta < 0) delta = 0; // Evita problemas na inicialização
             
-            // 1. Desenhar Fundo e Prédios de qualquer forma
-            drawBackgroundCity();
-
-            // 2. Atualizar física e interações se ativo
-            updateGameLogic();
-
-            // 3. Desenhar Elementos ativos se não estiver em menus estáticos
+            // 1. LÓGICA DO JOGO (Esta era a parte que tinha sumido!)
             if (gameState === 'PLAYING' || gameState === 'COUNTDOWN') {
-                signals.forEach(drawSignal);
-                bombs.forEach(drawBomb);
-                people.forEach(drawPerson);
-                drawUFO(ufo.x, ufo.y);
+                frameCount++;
+                if (gameState === 'PLAYING') updateGameLogic(delta);
+                lastTime = timestamp;
             }
 
-            // 4. Desenhar os controles virtuais sobrepostos para celulares
-            drawOnScreenControls();
+            // 2. DESENHA O FUNDO (Sempre desenha, mesmo pausado)
+            drawBackgroundCity();
+            
+            // 3. DESENHA AS ENTIDADES E O RAIO
+            if (gameState === 'PLAYING' || gameState === 'COUNTDOWN' || gameState === 'PAUSED' || gameState === 'QUIT_CONFIRM') {
+                signals.forEach(drawSignal); bombs.forEach(drawBomb); people.forEach(drawPerson);
+                drawEntities();
+                
+                // --- CANHÃO DE ABDUÇÃO CORRIGIDO ---
+                if (isAbducting) {
+                    let pulseWidth = 35 + Math.sin(frameCount * 0.5) * 6;
+                    ctx.save();
+                    let gradient = ctx.createLinearGradient(ufo.x, ufo.y, ufo.x, streetY);
+                    gradient.addColorStop(0, 'rgba(255, 255, 0, 0.5)'); gradient.addColorStop(1, 'rgba(0, 255, 200, 0.05)');
+                    ctx.fillStyle = gradient; ctx.beginPath(); ctx.moveTo(ufo.x - 4, ufo.y + 6); ctx.lineTo(ufo.x - pulseWidth, streetY); ctx.lineTo(ufo.x + pulseWidth, streetY); ctx.lineTo(ufo.x + 4, ufo.y + 6); ctx.fill();
+                    ctx.restore();
+                }
+                // -----------------------------------
 
+                drawUFO(ufo.x, ufo.y);
+            }
+            
+            // 4. DESENHA OS CONTROLES MOBILE
+            drawOnScreenControls();
+            
             requestAnimationFrame(mainLoop);
         }
 
-        // Inicializar loop primário de animação contínua
-        mainLoop();
-
+        // Dá o pontapé inicial no motor
+        requestAnimationFrame(mainLoop);
     </script>
 </body>
 </html>
+
+    
