@@ -48,6 +48,28 @@
             display: none; pointer-events: none; z-index: 4;
         }
         
+
+.credits {
+            position: absolute;
+            bottom: 15px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.6); /* Cor branca com transparência (discreto) */
+            line-height: 1.6;
+            text-shadow: 1px 1px 0px #000;
+        }
+        .credits a {
+            color: #00ffcc; /* Cor verde-água do jogo (evidente) */
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .credits a:hover {
+            color: #fff;
+            text-decoration: underline;
+        }
+
         /* Ocultar menus por padrão */
         #pause-screen, #quit-screen { display: none; }
     </style>
@@ -66,6 +88,13 @@
         <p>SOBREVIVA ÀS FORÇAS ARMADAS (CUIDADO COM CAÇAS!)</p>
         <p>[P] PAUSAR &nbsp;|&nbsp; [ESC] SAIR DO JOGO</p>
         <button class="btn" onclick="initGameSequence()">INICIAR INVASÃO</button>
+        
+        <!-- CRÉDITOS AQUI -->
+        <div class="credits">
+            Produced by Marcelo Schatzmann and Giovanna Guimarães<br>
+            Visit our website: <a href="https://lymmer.com.br" target="_blank">lymmer.com.br</a><br>
+            Contributions via Pix (Brazil) or Paypal: biofilmes@gmail.com
+        </div>
     </div>
 
     <div id="countdown-overlay">3</div>
@@ -92,6 +121,13 @@
             <p style="font-size: 18px; color: #ffff00;">ÚLTIMO JOGO: <span id="lastScore">0</span></p>
         </div>
         <button class="btn" onclick="initGameSequence()">JOGAR DE NOVO</button>
+
+        <!-- CRÉDITOS AQUI TAMBÉM -->
+        <div class="credits">
+            Produced by Marcelo Schatzmann and Giovanna Guimarães<br>
+            Visit our website: <a href="https://lymmer.com.br" target="_blank">lymmer.com.br</a><br>
+            Contributions via Pix (Brazil) or Paypal: biofilmes@gmail.com
+        </div>
     </div>
 
     <canvas id="gameCanvas"></canvas>
@@ -367,7 +403,7 @@
         function spawnAirplane() { airplanes.push({ x: Math.random() > 0.5 ? -150 : width + 150, y: Math.random() * (height * 0.2) + 20, vx: (Math.random() * 2 + 1.5) * (Math.random() > 0.5 ? 1 : -1) }); }
         function spawnHelicopter() { helicopters.push({ x: Math.random() > 0.5 ? -40 : width + 40, y: Math.random() * (height * 0.4) + 40, vx: (Math.random() * 1 + 0.5) * (Math.random() > 0.5 ? 1 : -1), lastShot: 0, isFalling: false }); }
         function spawnJet() { jets.push({ x: Math.random() > 0.5 ? -60 : width + 60, y: Math.random() * (height * 0.4) + 20, vx: (Math.random() * 2 + 3) * (Math.random() > 0.5 ? 1 : -1), lastShot: 0, isFalling: false }); }
-        function spawnRocket() { rockets.push({ x: Math.random() * width, y: streetY, vy: -(Math.random() * 2 + 2), radius: 5 }); }
+        function spawnRocket() { rockets.push({ x: Math.random() * width, y: streetY, vy: -(Math.random() * 2 + 2), radius: 10 }); }
         
         function createExplosion(x, y, color) {
             soundExp();
@@ -489,7 +525,44 @@
             });
 
             // Foguetes, Helicópteros, Jatos, Projéteis e Partículas (Lógica idêntica, código omitido da visualização gráfica mantido igual)
-            rockets.forEach(r => { ctx.fillStyle='#bbb'; ctx.fillRect(r.x-3, r.y-8, 6, 16); ctx.fillStyle='#f00'; ctx.beginPath(); ctx.moveTo(r.x-3, r.y-8); ctx.lineTo(r.x, r.y-14); ctx.lineTo(r.x+3, r.y-8); ctx.fill(); if(frameCount%4<2) { ctx.fillStyle='#fa0'; ctx.fillRect(r.x-2, r.y+8, 4, 6); } else { ctx.fillStyle='#f00'; ctx.fillRect(r.x-3, r.y+8, 6, 8); } });
+            
+// Foguetes Redesenhados (Maiores e com barbatanas)
+            rockets.forEach(r => { 
+                // Barbatanas laterais vermelhas
+                ctx.fillStyle = '#ff2233';
+                ctx.beginPath();
+                ctx.moveTo(r.x - 4, r.y + 2); // meio esquerdo
+                ctx.lineTo(r.x - 12, r.y + 12); // ponta externa esquerda
+                ctx.lineTo(r.x - 4, r.y + 12); // base esquerda
+                ctx.fill();
+                ctx.beginPath();
+                ctx.moveTo(r.x + 4, r.y + 2); // meio direito
+                ctx.lineTo(r.x + 12, r.y + 12); // ponta externa direita
+                ctx.lineTo(r.x + 4, r.y + 12); // base direita
+                ctx.fill();
+
+                // Corpo principal cinza (maior que o humano)
+                ctx.fillStyle = '#cccccc'; 
+                ctx.fillRect(r.x - 5, r.y - 14, 10, 26); 
+                
+                // Ponta vermelha (Nose cone)
+                ctx.fillStyle = '#ff2233'; 
+                ctx.beginPath(); 
+                ctx.moveTo(r.x - 5, r.y - 14); 
+                ctx.lineTo(r.x, r.y - 24); 
+                ctx.lineTo(r.x + 5, r.y - 14); 
+                ctx.fill(); 
+                
+                // Fogo da turbina animado e maior
+                if(frameCount % 4 < 2) { 
+                    ctx.fillStyle = '#ffaa00'; 
+                    ctx.fillRect(r.x - 3, r.y + 12, 6, 10); 
+                } else { 
+                    ctx.fillStyle = '#ff0000'; 
+                    ctx.fillRect(r.x - 4, r.y + 12, 8, 14); 
+                } 
+            });
+
             helicopters.forEach(h => { ctx.save(); if (h.isFalling) { ctx.translate(h.x, h.y); ctx.rotate(frameCount*0.2); ctx.translate(-h.x, -h.y); } ctx.fillStyle='#2e4c23'; ctx.fillRect(h.x-15, h.y-5, 30, 12); ctx.fillRect(h.x+(h.vx>0?-25:15), h.y-2, 10, 4); ctx.fillStyle='#888'; ctx.fillRect(h.x-2, h.y-12, 4, 7); if(frameCount%4<2) ctx.fillRect(h.x-20, h.y-12, 40, 2); else ctx.fillRect(h.x-10, h.y-14, 20, 4); ctx.restore(); });
             jets.forEach(j => { ctx.save(); if (j.isFalling) { ctx.translate(j.x, j.y); ctx.rotate(frameCount*0.3); ctx.translate(-j.x, -j.y); } ctx.fillStyle='#556'; if(j.vx>0) { ctx.beginPath(); ctx.moveTo(j.x-15, j.y); ctx.lineTo(j.x+20, j.y); ctx.lineTo(j.x-5, j.y-8); ctx.fill(); ctx.fillStyle='#223'; ctx.fillRect(j.x-10, j.y, 15, 6); if(frameCount%2===0){ ctx.fillStyle='#f80'; ctx.fillRect(j.x-22, j.y-2, 6, 4); } } else { ctx.beginPath(); ctx.moveTo(j.x+15, j.y); ctx.lineTo(j.x-20, j.y); ctx.lineTo(j.x+5, j.y-8); ctx.fill(); ctx.fillStyle='#223'; ctx.fillRect(j.x-5, j.y, 15, 6); if(frameCount%2===0){ ctx.fillStyle='#f80'; ctx.fillRect(j.x+16, j.y-2, 6, 4); } } ctx.restore(); });
             ctx.fillStyle = '#ffaa00'; projectiles.forEach(p => { ctx.fillRect(p.x-2, p.y-2, 4, 4); });
@@ -565,7 +638,7 @@
             // Aviões, Foguetes, Helicópteros, Caças (Mesma lógica anterior mantida compacta)
             if (Math.random() < 0.0015) spawnAirplane();
             for(let i=airplanes.length-1; i>=0; i--) { airplanes[i].x += airplanes[i].vx; if(airplanes[i].x>width+200||airplanes[i].x<-200) airplanes.splice(i,1); }
-            if (score>30 && Math.random()<0.005+(score*0.00005)) spawnRocket();
+            if (score>30 && Math.random()<0.0025+(score*0.000025)) spawnRocket();
             for(let i=rockets.length-1; i>=0; i--){ let r=rockets[i]; r.y+=r.vy; if(Math.hypot(r.x-ufo.x, r.y-ufo.y)<r.radius+ufo.radius-4){ takeDamage(); createExplosion(r.x, r.y, '#fa0'); rockets.splice(i,1); } else if(r.y<-50) rockets.splice(i,1); }
             if (score>50 && helicopters.length<2 && Math.random()<0.005) spawnHelicopter();
             for(let i=helicopters.length-1; i>=0; i--){ let h=helicopters[i]; if(!h.isFalling){ h.x+=h.vx; if(frameCount-h.lastShot>100 && Math.abs(h.x-ufo.x)<150){ projectiles.push({x:h.x,y:h.y+5,vx:(ufo.x-h.x)*0.02,vy:3}); h.lastShot=frameCount; soundEnemy(); } if(isAbducting && Math.abs(h.x-ufo.x)<pulseWidth && h.y>ufo.y && h.y<streetY) h.isFalling=true; if(h.x<-100||h.x>width+100) helicopters.splice(i,1); } else { h.y+=4; if(h.y>=streetY){ createExplosion(h.x,h.y,'#ff5500'); helicopters.splice(i,1); score+=20; } } }
